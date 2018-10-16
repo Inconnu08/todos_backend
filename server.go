@@ -1,15 +1,13 @@
 package main
 
 import (
-	"github.com/urfave/negroni"
-	"todos_backend/controllers"
-
-	// Standard library packages
 	"net/http"
 
-	// Third party packages
 	"github.com/julienschmidt/httprouter"
+	"github.com/urfave/negroni"
 	"gopkg.in/mgo.v2"
+	"log"
+	"todos_backend/controllers"
 )
 
 func main() {
@@ -56,8 +54,10 @@ func getSession() *mgo.Session {
 
 	// Check if connection error, is mongo running?
 	if err != nil {
-		panic(err)
+		log.Fatalf("CreateSession: %s\n", err)
 	}
+
+	s.SetMode(mgo.Monotonic, true)
 
 	// Deliver session
 	return s
