@@ -13,6 +13,7 @@ func SetTaskRoutes(router *httprouter.Router) *httprouter.Router {
 
 	// End points
 	router.GET("/task/:id", tc.GetTask)
+	router.GET("/tasks", tc.GetTasks)
 	router.POST("/task", tc.CreateTask)
 	router.DELETE("/task/:id", tc.RemoveTask)
 

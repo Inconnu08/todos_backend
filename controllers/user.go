@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"todos_backend/models"
 
@@ -87,8 +88,20 @@ func (uc UserController) CreateUser(w http.ResponseWriter, r *http.Request, p ht
 	// Add an Id
 	u.Id = bson.NewObjectId()
 
+	hPass, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
+	if err != nil {
+		w.WriteHeader(500)
+		return
+	}
+	u.HashPassword = hPass
+	//clear the incoming text password
+	u.Password = ""
+
 	// Write the user to mongo
-	uc.session.DB("todos").C("users").Insert(u)
+	err = uc.session.DB("todos").C("users").Insert(&u)
+
+	// clear hashed password
+	u.HashPassword = nil
 
 	// Marshal provided interface into JSON structure
 	uj, _ := json.Marshal(u)

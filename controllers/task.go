@@ -55,6 +55,26 @@ func (uc TaskController) GetTask(w http.ResponseWriter, r *http.Request, p httpr
 	fmt.Fprintf(w, "%s", tj)
 }
 
+// GetUser retrieves all user resources
+func (uc TaskController) GetTasks(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+
+	var tl []models.Task
+
+	// Fetch user
+	if err := uc.session.DB("todos").C("tasks").Find(nil).All(&tl); err != nil {
+		w.WriteHeader(404)
+		return
+	}
+
+	// Marshal provided interface into JSON structure
+	tj, _ := json.Marshal(tl)
+
+	// Write content-type, statuscode, payload
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	fmt.Fprintf(w, "%s", tj)
+}
+
 // CreateTask creates a new Task resource
 func (uc TaskController) CreateTask(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	// Stub an Task to be populated from the body
