@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
+	"taskmanager/common"
 	"todos_backend/models"
 
 	"github.com/julienschmidt/httprouter"
@@ -94,7 +95,7 @@ func (uc UserController) CreateUser(w http.ResponseWriter, r *http.Request, p ht
 		return
 	}
 	u.HashPassword = hPass
-	//clear the incoming text password
+	// clear the incoming text password
 	u.Password = ""
 
 	// Write the user to mongo
@@ -110,6 +111,69 @@ func (uc UserController) CreateUser(w http.ResponseWriter, r *http.Request, p ht
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(201)
 	fmt.Fprintf(w, "%s", uj)
+}
+
+func (uc UserController) Login(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	var dataResource LoginModel
+	var token string
+	var u models.User
+
+	//fmt.Println("Login handler")
+	//body, _ := ioutil.ReadAll(r.Body)
+	//fmt.Println(string(body))
+	err := json.NewDecoder(r.Body).Decode(&dataResource)
+	if err != nil {
+		fmt.Println("Decoding error...")
+		w.WriteHeader(500)
+		return
+	}
+
+	fmt.Println(dataResource)
+	loginUser := models.User{
+		Email:    dataResource.Email,
+		Password: dataResource.Password,
+	}
+	fmt.Printf("%s right?", loginUser.Email)
+	err = uc.session.DB("todos").C("users").Find(bson.M{"email": loginUser.Email}).One(&u)
+	fmt.Println(u)
+	if err != nil {
+		fmt.Println("Error finding user...")
+		w.WriteHeader(500)
+		return
+	}
+	// Validate password
+	err = bcrypt.CompareHashAndPassword(u.HashPassword, []byte(dataResource.Password))
+	fmt.Printf("\n%s\n %s\n", u.HashPassword, loginUser.Password)
+	if err == nil {
+		//if login is successful
+
+		// Generate JWT token
+		fmt.Printf("Generate token...\n")
+		fmt.Println(u.Email)
+		token, err = common.GenerateJWT(u.Email, "member")
+		if err != nil {
+			w.WriteHeader(500)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		// Clean-up the hashpassword to eliminate it from response JSON
+		u.HashPassword = nil
+		authUser := AuthUserModel{
+			User:  u,
+			Token: token,
+		}
+		j, err := json.Marshal(AuthUserResource{Data: authUser})
+		if err != nil {
+			w.WriteHeader(500)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write(j)
+
+	} else {
+		w.WriteHeader(401)
+		return
+	}
 }
 
 // RemoveUser removes an existing user resource

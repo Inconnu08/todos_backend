@@ -13,7 +13,8 @@ func SetUserRoutes(router *httprouter.Router) *httprouter.Router {
 
 	router.GET("/user/:id", uc.GetUser)
 	router.GET("/users", uc.GetUsers)
-	router.POST("/user", uc.CreateUser)
+	router.POST("/register", uc.CreateUser)
+	router.POST("/login", uc.Login)
 	router.DELETE("/user/:id", uc.RemoveUser)
 
 	return router
