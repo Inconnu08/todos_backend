@@ -3,6 +3,7 @@ package common
 import (
 	"crypto/rsa"
 	"errors"
+	"fmt"
 	"github.com/dgrijalva/jwt-go/request"
 	"io/ioutil"
 	"log"
@@ -11,7 +12,7 @@ import (
 	"taskmanager/Godeps/_workspace/src/github.com/gorilla/context"
 	"time"
 
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go"
 )
 
 // AppClaims provides custom claim for JWT
@@ -25,9 +26,9 @@ type AppClaims struct {
 // location of private/public key files
 const (
 	// openssl genrsa -out app.rsa 1024
-	privKeyPath = "keys/tm.rsa"
+	privKeyPath = "keys/app.rsa"
 	// openssl rsa -in app.rsa -pubout > app.rsa.pub
-	pubKeyPath = "keys/tm.rsa.pub"
+	pubKeyPath = "keys/app.rsa.pub"
 )
 
 // Private key for signing and public key for verification
@@ -38,7 +39,7 @@ var (
 )
 
 // Read the key files before starting http handlers
-func initKeys() {
+func InitKeys() {
 
 	signBytes, err := ioutil.ReadFile(privKeyPath)
 	if err != nil {
@@ -63,6 +64,7 @@ func initKeys() {
 
 // GenerateJWT generates a new JWT token
 func GenerateJWT(name, role string) (string, error) {
+	fmt.Println("Generate JWT function")
 	// Create the Claims
 	claims := AppClaims{
 		name,

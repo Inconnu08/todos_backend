@@ -2,12 +2,15 @@ package main
 
 import (
 	"net/http"
+	"todos_backend/common"
 	"todos_backend/routers"
 
 	"github.com/urfave/negroni"
 )
 
 func main() {
+
+	common.InitKeys()
 
 	r := routers.InitRoutes()
 
